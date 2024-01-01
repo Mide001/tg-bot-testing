@@ -14,6 +14,7 @@ const {
 } = process.env;
 
 let types = ["uint256", "address"];
+const subscribedChatIds = new Set();
 
 async function sendTelegramMessage(chatId, message) {
     try {
@@ -25,7 +26,30 @@ async function sendTelegramMessage(chatId, message) {
 
 app.get('/', (req, res) => {
     res.send("Uniswap V3 API Bot Is Running")
-})
+});
+
+bot.onText(/\/subscribe/, (msg) => {
+    const chatId = msg.chat.id;
+
+    if (!subscribedChatIds.has(chatId)) {
+        subscribedChatIds.add(chatId);
+        bot.sendMessage(chatId, "You have subscribed to receive notifications.");
+    } else {
+        bot.sendMessage(chatId, "You are already subscribed.")
+    }
+});
+
+// New command to check subscription status
+bot.onText(/\/check_subscription/, (msg) => {
+    const chatId = msg.chat.id;
+
+    if (subscribedChatIds.has(chatId)) {
+        bot.sendMessage(chatId, "You are currently subscribed.");
+    } else {
+        bot.sendMessage(chatId, "You are not subscribed. Use /subscribe to subscribe.");
+    }
+});
+
 
 app.post("/webhook", async (req, res) => {
     const webhook = req.body;
@@ -45,9 +69,16 @@ More info: https://dexscreener.com/ethereum/${poolAddress}
 Powered by Demeter-Labs
 `;
 
+/*
         // Replace CHAT_ID with the actual chat ID of your Telegram channel or user
         const chatId = process.env.TELEGRAM_CHAT_ID;
         await sendTelegramMessage(chatId, message);
+*/
+
+         // Send messages to all subscribed chat IDs
+         for (const chatId of subscribedChatIds) {
+            await sendTelegramMessage(chatId, message);
+        }
     }
 
     res.sendStatus(200);
