@@ -3,9 +3,7 @@ const ethers = require("ethers");
 const express = require("express");
 const TelegramBot = require("node-telegram-bot-api");
 
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
-    polling: true,
-});
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const app = express();
 app.use(express.json());
 
@@ -50,6 +48,16 @@ bot.onText(/\/check_subscription/, (msg) => {
     }
 });
 
+app.post("/", async (req, res) => {
+    const testMessage = "This is a test message.";
+
+    // Send messages to all subscribed chat IDs
+    for (const chatId of subscribedChatIds) {
+        await sendTelegramMessage(chatId, testMessage);
+    }
+
+    res.send("Test message sent to all subscribed users.");
+});
 
 app.post("/webhook", async (req, res) => {
     const webhook = req.body;
@@ -69,14 +77,14 @@ More info: https://dexscreener.com/ethereum/${poolAddress}
 Powered by Demeter-Labs
 `;
 
-/*
-        // Replace CHAT_ID with the actual chat ID of your Telegram channel or user
-        const chatId = process.env.TELEGRAM_CHAT_ID;
-        await sendTelegramMessage(chatId, message);
-*/
+        /*
+                // Replace CHAT_ID with the actual chat ID of your Telegram channel or user
+                const chatId = process.env.TELEGRAM_CHAT_ID;
+                await sendTelegramMessage(chatId, message);
+        */
 
-         // Send messages to all subscribed chat IDs
-         for (const chatId of subscribedChatIds) {
+        // Send messages to all subscribed chat IDs
+        for (const chatId of subscribedChatIds) {
             await sendTelegramMessage(chatId, message);
         }
     }
